@@ -1015,37 +1015,112 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         };
         window.execSwitch = (i) => { hideModal(); if(battle.turn==='p1') battle.pActive=i; else battle.eActive=i; battle.turn=battle.turn==='p1'?(battle.mode==='ai'?'e':'p2'):'p1'; renderBattle(); };
 
-        // --- MP MENU ---
-        window.renderMPLobby = () => { if (!window.IS_ONLINE) return alert("Offline"); ui.innerHTML = `<div class="game-frame bg-gray-800 p-8 flex flex-col justify-center items-center text-center"><h2 class="text-2xl text-blue-400 mb-2 font-bold">LOBBY</h2><button onclick="hostGame()" class="bg-green-600 text-white w-full max-w-xs py-4 rounded mb-4 border-b-4 border-green-800 font-bold">HOST GAME</button><div class="flex w-full max-w-xs gap-2"><input id="join-code" type="text" placeholder="CODE" class="flex-1 bg-gray-700 text-white text-center p-3 rounded border-2 border-gray-600 outline-none uppercase" maxlength="6"><button onclick="joinGame()" class="bg-yellow-600 text-white px-4 py-3 rounded border-b-4 border-yellow-800 font-bold">JOIN</button></div><button onclick="renderHub()" class="mt-8 text-gray-400 hover:text-white">Back to Hub</button></div>`; };
-        window.hostGame = async () => { const battleId = Math.floor(100000+Math.random()*900000).toString(); mpRole='p1'; mpBattleId=battleId; const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',battleId); await window.db_setDoc(ref,{p1:{name:state.player.name,party:state.battleParty,activeIdx:0},p2:null,status:'waiting',turn:'p1',lastAction:null,timestamp:Date.now()}); ui.innerHTML=`<div class="game-frame bg-gray-800 flex flex-col items-center justify-center text-center p-4"><h2 class="text-xl text-white mb-2">Waiting...</h2><div class="bg-blue-900 text-blue-200 text-3xl font-mono p-4 rounded border-2 border-blue-500 mb-4 select-all">${battleId}</div><button onclick="renderHub()" class="mt-8 text-red-400">Cancel</button></div>`; listenToBattle(battleId); };
-        window.joinGame = async () => { const battleId=document.getElementById('join-code').value; mpRole='p2'; mpBattleId=battleId; const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',battleId); await window.db_runTransaction(window.GAME_DB, async(t)=>{ const doc=await t.get(ref); if(!doc.exists()) throw "Err"; t.update(ref,{p2:{name:state.player.name,party:state.battleParty,activeIdx:0},status:'active'}); }); listenToBattle(battleId); };
-        const listenToBattle = (id) => { const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',id); mpUnsub=window.db_onSnapshot(ref,(d)=>{ const data=d.data(); if(!data) return; if(data.status==='active') renderMPBattle(data); else if(data.status==='finished') { showModal(`<h2>GAME OVER</h2><p>${data.winner===mpRole?'You':'Opponent'} Won!</p><button onclick="quitHub()" class="mt-4 bg-gray-600 w-full py-2 rounded">Exit</button>`); } }); };
+                // --- MP MENU ---
+        window.renderMPLobby = () => { 
+            if (!window.IS_ONLINE) return alert("Offline"); 
+            ui.innerHTML = `<div class="game-frame bg-gray-800 p-8 flex flex-col justify-center items-center text-center"><h2 class="text-2xl text-blue-400 mb-2 font-bold">LOBBY</h2><button onclick="hostGame()" class="bg-green-600 text-white w-full max-w-xs py-4 rounded mb-4 border-b-4 border-green-800 font-bold">HOST GAME</button><div class="flex w-full max-w-xs gap-2"><input id="join-code" type="text" placeholder="CODE" class="flex-1 bg-gray-700 text-white text-center p-3 rounded border-2 border-gray-600 outline-none uppercase" maxlength="6"><button onclick="joinGame()" class="bg-yellow-600 text-white px-4 py-3 rounded border-b-4 border-yellow-800 font-bold">JOIN</button></div><button onclick="renderHub()" class="mt-8 text-gray-400 hover:text-white">Back to Hub</button></div>`; 
+        };
+
+        window.hostGame = async () => { 
+            const battleId = Math.floor(100000+Math.random()*900000).toString(); 
+            mpRole='p1'; mpBattleId=battleId; 
+            const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',battleId); 
+            await window.db_setDoc(ref,{p1:{name:state.player.name,party:state.battleParty,activeIdx:0},p2:null,status:'waiting',turn:'p1',lastAction:null,timestamp:Date.now()}); 
+            ui.innerHTML=`<div class="game-frame bg-gray-800 flex flex-col items-center justify-center text-center p-4"><h2 class="text-xl text-white mb-2">Waiting...</h2><div class="bg-blue-900 text-blue-200 text-3xl font-mono p-4 rounded border-2 border-blue-500 mb-4 select-all">${battleId}</div><button onclick="renderHub()" class="mt-8 text-red-400">Cancel</button></div>`; 
+            listenToBattle(battleId); 
+        };
+
+        window.joinGame = async () => { 
+            const battleId=document.getElementById('join-code').value; 
+            mpRole='p2'; mpBattleId=battleId; 
+            const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',battleId); 
+            await window.db_runTransaction(window.GAME_DB, async(t)=>{ 
+                const doc=await t.get(ref); 
+                if(!doc.exists()) throw "Err"; 
+                t.update(ref,{p2:{name:state.player.name,party:state.battleParty,activeIdx:0},status:'active'}); 
+            }); 
+            listenToBattle(battleId); 
+        };
+
+        const listenToBattle = (id) => { 
+            const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',id); 
+            mpUnsub=window.db_onSnapshot(ref,(d)=>{ 
+                const data=d.data(); 
+                if(!data) return; 
+                if(data.status==='active') renderMPBattle(data); 
+                else if(data.status==='finished') { 
+                    showModal(`<h2>GAME OVER</h2><p>${data.winner===mpRole?'You':'Opponent'} Won!</p><button onclick="quitHub()" class="mt-4 bg-gray-600 w-full py-2 rounded">Exit</button>`, {'quitHub': renderHub}); 
+                } 
+            }); 
+        };
+
+        // --- NEW: MISSING ANIMATION FUNCTION FIXED HERE ---
+        const playAttackAnim = async (mName, isMe) => {
+            const m = MOVES[mName] || MOVES['Tackle'];
+            const sprite = document.getElementById(isMe ? 'spr-p' : 'spr-e');
+            const target = document.getElementById(isMe ? 'spr-e' : 'spr-p');
+
+            if (m.category === 'Physical') {
+                sprite.classList.add(isMe ? 'anim-lunge-right' : 'anim-lunge-left');
+                await wait(200); AUDIO.sfx.hit();
+                sprite.classList.remove(isMe ? 'anim-lunge-right' : 'anim-lunge-left');
+            } else {
+                const el = document.createElement('div');
+                const type = ['Fire','Water','Electric'].includes(m.type)?m.type.toLowerCase():'fire';
+                el.className = `vfx vfx-${type}`;
+                el.style.left = isMe ? '20%' : '80%'; el.style.top = isMe ? '65%' : '35%';
+                const layer = document.getElementById('vfx-layer');
+                if(layer) {
+                    layer.appendChild(el);
+                    el.offsetHeight; el.style.transition = 'all 0.4s ease-out';
+                    el.style.left = isMe ? '80%' : '20%'; el.style.top = isMe ? '35%' : '65%';
+                    await wait(400); el.remove(); AUDIO.sfx.super();
+                }
+            }
+            target.classList.add('anim-hit'); await wait(300); target.classList.remove('anim-hit');
+        };
+
         const renderMPBattle = (data) => {
             const me = mpRole==='p1'?data.p1:data.p2; const op = mpRole==='p1'?data.p2:data.p1;
             const mMon = me.party[me.activeIdx]; const oMon = op.party[op.activeIdx];
+            
             ui.innerHTML = `
                 <div class="game-frame bg-gray-800"><div class="battle-view"><div class="clouds-container"><div class="cloud c1"></div><div class="cloud c2"></div></div><div class="landscape"><div class="mountains"></div><div class="hill-back"></div><div class="hill-front"></div></div><div class="sun"></div><div class="platform battle-pad pad-e"></div><div class="platform battle-pad pad-p"></div>
                 <div class="absolute top-6 left-4 info-box w-40"><div class="text-[10px] font-bold text-white">${oMon.name}</div><div class="h-2 bg-gray-600 rounded-full mt-1 border border-white overflow-hidden"><div class="h-full bg-green-500 hp-fill" style="width:${(oMon.hp/oMon.maxHp)*100}%"></div></div></div>
                 <div id="spr-e-con" class="absolute top-[18%] right-[10%] w-32 h-32 flex items-center justify-center"><img id="spr-e" src="${getSprite(oMon.protoId)}" class="w-full h-full object-contain anim-float"></div>
                 <div class="absolute bottom-10 right-4 info-box w-44"><div class="text-[10px] font-bold text-white">${mMon.name}</div><div class="h-3 bg-gray-600 rounded-full mt-1 border border-white overflow-hidden"><div class="h-full bg-green-500 hp-fill" style="width:${(mMon.hp/mMon.maxHp)*100}%"></div></div><div class="text-[10px] text-right mt-1 font-mono text-gray-900 font-bold">${mMon.hp}/${mMon.maxHp}</div></div>
                 <div id="spr-p-con" class="absolute bottom-[20%] left-[10%] w-40 h-40 flex items-center justify-center"><img id="spr-p" src="${getSprite(mMon.protoId, true)}" class="w-full h-full object-contain anim-breathe"></div>
-                <div id="vfx-layer" class="vfx-container"></div></div>
+                <div id="vfx-layer" class="vfx-container absolute inset-0 pointer-events-none"></div></div>
                 <div class="bg-gray-900 border-t-4 border-gray-700 p-2 flex flex-col gap-2 h-40"><div class="bg-gray-800 text-white p-2 rounded h-8 flex items-center justify-center text-[10px] text-center border border-gray-600"><span id="mp-log">${data.turn===mpRole?'Your Turn':'Waiting...'}</span></div><div id="mp-grid" class="grid grid-cols-2 gap-2 h-full ${data.turn!==mpRole?'opacity-50 pointer-events-none':''}"></div></div></div>`;
+            
             document.getElementById('mp-grid').innerHTML = mMon.moves.map(m => {
                 const moveData = MOVES[m] || MOVES['Tackle'];
                 return `<button onclick="sendMPMove('${m}')" class="type-btn type-${moveData.type.toLowerCase()} border-b-4 rounded font-bold text-[10px] hover:brightness-110 h-10">${m}</button>`;
             }).join('');
-            if(data.lastAction && data.lastAction.timestamp > (window.lp || 0) && data.lastAction.turn !== mpRole) { window.lp = data.lastAction.timestamp; document.getElementById('mp-log').innerText = `${op.name} used ${data.lastAction.move}!`; playAttackAnim(data.lastAction.move, false); }
+
+            // Play animation if opponent moved
+            if(data.lastAction && data.lastAction.timestamp > (window.lp || 0) && data.lastAction.turn !== mpRole) { 
+                window.lp = data.lastAction.timestamp; 
+                document.getElementById('mp-log').innerText = `${op.name} used ${data.lastAction.move}!`; 
+                playAttackAnim(data.lastAction.move, false); // Fixed: Calls the new safe function
+            }
         };
+
         window.sendMPMove = async (moveName) => {
-            const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',mpBattleId); const me=mpRole; const op=mpRole==='p1'?'p2':'p1';
-            playAttackAnim(moveName, true);
+            const ref=window.db_doc(window.GAME_DB,'artifacts',window.APP_ID,'public','data','battles',mpBattleId); 
+            const me=mpRole; const op=mpRole==='p1'?'p2':'p1';
+            
+            playAttackAnim(moveName, true); // Fixed: Calls the new safe function
+            document.getElementById('mp-log').innerText = `You used ${moveName}!`; // Update log immediately for player
+
             await window.db_runTransaction(window.GAME_DB, async(t)=>{
                 const d=(await t.get(ref)).data(); if(d.turn!==me) return;
                 const mMon=d[me].party[d[me].activeIdx]; const oMon=d[op].party[d[op].activeIdx];
-                const dmg=Math.floor((((2*mMon.lvl/5+2)*MOVES[moveName].power*(mMon.atk/oMon.def))/50+2));
+                const moveData = MOVES[moveName] || MOVES['Tackle']; // Added Safety check
+                const dmg=Math.floor((((2*mMon.lvl/5+2)*moveData.power*(mMon.atk/oMon.def))/50+2));
                 const newHp=Math.max(0,oMon.hp-dmg);
                 d[op].party[d[op].activeIdx].hp=newHp;
+                
                 let up={[`${op}.party`]:d[op].party, turn:op, lastAction:{turn:me,move:moveName,timestamp:Date.now()}};
                 if(newHp<=0) {
                     let nIdx=-1; for(let i=0;i<d[op].party.length;i++) if(d[op].party[i].hp>0) { nIdx=i; break; }
@@ -1054,6 +1129,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 t.update(ref,up);
             });
         };
+            
 
         // Start
         window.addEventListener('click', () => AUDIO.init(), {once: true});
