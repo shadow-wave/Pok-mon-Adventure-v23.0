@@ -689,32 +689,68 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     <p class="text-[8px] text-slate-500 mt-10">DEV: ARAVIND O K</p>
                 </div></div>
 
-    <script type="module">
+        <script type="module">
+        // We use these web links so the game works on GitHub without installing anything
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js';
-        import { getAuth, signInAnonymously, signInWithCustomToken } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+        import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, onSnapshot, runTransaction } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js';
 
-        window.initFirebase = async () => {
-            const configText = window.__firebase_config;
-            if (configText) {
-                try {
-                    const app = initializeApp(JSON.parse(configText));
-                    const auth = getAuth(app);
-                    const db = getFirestore(app);
-                    if (window.__initial_auth_token) await signInWithCustomToken(auth, window.__initial_auth_token);
-                    else await signInAnonymously(auth);
-                    window.GAME_USER = auth.currentUser; window.GAME_DB = db; window.APP_ID = window.__app_id; window.IS_ONLINE = true;
-                    window.db_doc = doc; window.db_setDoc = setDoc; window.db_getDoc = getDoc; window.db_onSnapshot = onSnapshot; window.db_runTransaction = runTransaction;
-                    updateOnlineStatus(true);
-                } catch (e) { window.IS_ONLINE = false; updateOnlineStatus(false); }
-            } else { window.IS_ONLINE = false; updateOnlineStatus(false); }
+        // 🟢 THIS IS YOUR CONFIGURATION (I pasted your keys here for you) 🟢
+        const firebaseConfig = {
+          apiKey: "AIzaSyCKmkalPeggoq0y5OUUzFlyVoVJnKCGqvU",
+          authDomain: "pokemon-pvp-12f30.firebaseapp.com",
+          projectId: "pokemon-pvp-12f30",
+          storageBucket: "pokemon-pvp-12f30.firebasestorage.app",
+          messagingSenderId: "947032047271",
+          appId: "1:947032047271:web:22c7966896f0cd36c2e582",
+          measurementId: "G-K6TFQVR6FZ"
         };
+        // ------------------------------------------------------------------
+
+        window.initFirebase = async () => {
+            try {
+                // 1. Start the App with your keys
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                
+                // 2. Log in automatically (Anonymous)
+                await signInAnonymously(auth);
+                
+                // 3. Save connections for the game to use
+                window.GAME_USER = auth.currentUser; 
+                window.GAME_DB = db; 
+                window.APP_ID = "poke-v28"; 
+                window.IS_ONLINE = true;
+                
+                // 4. Connect database tools
+                window.db_doc = doc; 
+                window.db_setDoc = setDoc; 
+                window.db_getDoc = getDoc; 
+                window.db_onSnapshot = onSnapshot; 
+                window.db_runTransaction = runTransaction;
+
+                // 5. Update the screen text
+                updateOnlineStatus(true);
+                console.log("✅ Firebase Connected Successfully!");
+            } catch (e) { 
+                console.error("❌ Connection Failed:", e);
+                window.IS_ONLINE = false; 
+                updateOnlineStatus(false);
+            }
+        };
+
         const updateOnlineStatus = (online) => {
              const el = document.getElementById('online-status');
-             if(el) { el.innerText = online ? "🟢 ONLINE" : "🔴 OFFLINE (File Mode)"; el.className = online ? "mb-4 text-[10px] text-green-400 font-mono" : "mb-4 text-[10px] text-red-400 font-mono"; }
+             if(el) { 
+                 el.innerText = online ? "🟢 ONLINE" : "🔴 OFFLINE (Check Console)"; 
+                 el.className = online ? "mb-4 text-[10px] text-green-400 font-mono" : "mb-4 text-[10px] text-red-400 font-mono"; 
+             }
         };
+        
         window.initFirebase();
-    </script>
+        </script>
+        
 
     <script>
         // --- DATA ---
