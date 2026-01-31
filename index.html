@@ -1076,28 +1076,12 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         const getStatusTag = (status) => status ? `<span class="status-badge status-${status}">${status.toUpperCase()}</span>` : '';
 
                 
-
-
-        const updateControls = () => {
-            const grid = document.getElementById('grid');
-            const turn = battle.turn;
-            const activeMon = turn === 'p1' ? battle.pParty[battle.pActive] : battle.eParty[battle.eActive];
-            
-            if(battle.mode === 'ai' && battle.turn === 'e') { 
-                grid.innerHTML = `<p class="col-span-2 text-center text-slate-500 mt-4">Opponent is choosing...</p>`;
-                setTimeout(aiTurn, 1200); return; 
-            }
-            
-            grid.innerHTML = activeMon.moves.map(m => {
-                const moveData = MOVES[m] || MOVES['Tackle'];
-                return `<button onclick="doAction('${m}')" class="type-btn type-${moveData.type.toLowerCase()} py-3 text-[10px] uppercase border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">${m}</button>`;
-            }).join('');
-          const renderBattle = () => {
+        /* --- FIXED RENDER BATTLE (SINGLE PLAYER) --- */
+        const renderBattle = () => {
             const p = battle.pParty[battle.pActive]; const e = battle.eParty[battle.eActive];
             const pPct = (p.hp/p.maxHp)*100; const ePct = (e.hp/e.maxHp)*100;
             const genBalls = (party) => party.map(m => `<div class="w-2 h-2 rounded-full border border-slate-500 ${m.hp <= 0 ? 'bg-slate-700' : 'bg-green-500'}"></div>`).join('');
             
-            // --- UPDATED HTML STRUCTURE (V31) ---
             ui.innerHTML = `
                 <div class="game-frame">
                     <div id="battle-container" class="battle-view bg-green-800">
@@ -1149,10 +1133,29 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 </div>`;
             updateControls();
         };
-          
+
+        /* --- FIXED CONTROLS FUNCTION --- */
+        const updateControls = () => {
+            const grid = document.getElementById('grid');
+            const turn = battle.turn;
+            const activeMon = turn === 'p1' ? battle.pParty[battle.pActive] : battle.eParty[battle.eActive];
+            
+            if(battle.mode === 'ai' && battle.turn === 'e') { 
+                grid.innerHTML = `<p class="col-span-2 text-center text-slate-500 mt-4">Opponent is choosing...</p>`;
+                setTimeout(aiTurn, 1200); return; 
+            }
+            
+            grid.innerHTML = activeMon.moves.map(m => {
+                const moveData = MOVES[m] || MOVES['Tackle'];
+                return `<button onclick="doAction('${m}')" class="type-btn type-${moveData.type.toLowerCase()} py-3 text-[10px] uppercase border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">${m}</button>`;
+            }).join('');
+            
             if(battle.mode === 'ai') grid.innerHTML += `<button onclick="startCatch()" class="type-btn type-catch py-3 text-[10px] border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">CATCH x${state.bag.balls}</button>`;
             grid.innerHTML += `<button onclick="manualSwitch()" class="type-btn bg-slate-600 py-3 text-[10px] border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">SWITCH</button>`;
         };
+
+
+
 
         // --- NEW COMBAT LOGIC (SINGLE PLAYER) ---
         window.doAction = async (mName) => {
