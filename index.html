@@ -560,61 +560,72 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         body { font-family: 'Press Start 2P', cursive; background: #0f172a; color: #f8fafc; user-select: none; overflow: hidden; touch-action: none; }
         .pixel-corners { image-rendering: pixelated; }
         
-        /* --- BATTLEGROUND --- */
+        /* --- IMPROVED BATTLEGROUND (V31) --- */
         .battle-view { 
             position: relative; 
             flex: 1; 
             overflow: hidden; 
-            background: linear-gradient(180deg, #60A5FA 0%, #93C5FD 50%, #BFDBFE 100%);
-            animation: sky-cycle 60s infinite alternate;
+            /* High-quality external asset for Forest/Field background */
+            background: url('https://images.unsplash.com/photo-1596323679626-4447b97e5564?q=80&w=1000&auto=format&fit=crop') no-repeat center bottom;
+            background-size: cover;
+            /* Game-like filter to make colors pop */
+            filter: contrast(1.15) saturate(1.2); 
+            box-shadow: inset 0 0 60px rgba(0,0,0,0.6);
         }
-        @keyframes sky-cycle { 0% { filter: hue-rotate(0deg); } 100% { filter: hue-rotate(30deg); } }
 
-        /* Sun & Clouds */
-        .sun {
-            position: absolute; top: 10%; right: 10%;
-            width: 60px; height: 60px;
-            background: radial-gradient(circle, #FEF08A 40%, #FDE047 100%);
-            border-radius: 50%;
-            box-shadow: 0 0 50px rgba(253, 224, 71, 0.8);
-            animation: sun-pulse 4s ease-in-out infinite alternate;
-        }
-        @keyframes sun-pulse { 0% { transform: scale(1); opacity: 0.9; } 100% { transform: scale(1.1); opacity: 1; } }
-
-        .clouds-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
-        .cloud {
-            position: absolute; background: rgba(255,255,255,0.7); border-radius: 50px;
-            animation: cloud-drift linear infinite;
-        }
-        .cloud::after, .cloud::before { content: ''; position: absolute; background: inherit; border-radius: 50%; }
-        .c1 { width: 120px; height: 40px; top: 15%; left: -20%; animation-duration: 45s; }
-        .c1::after { width: 60px; height: 60px; top: -30px; left: 20px; }
-        .c2 { width: 80px; height: 30px; top: 25%; left: -10%; animation-duration: 35s; opacity: 0.6; animation-delay: -15s; }
-        @keyframes cloud-drift { from { transform: translateX(-150px); } to { transform: translateX(120vw); } }
-
-        /* Landscape */
-        .landscape { position: absolute; bottom: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
-        .mountains {
-            position: absolute; bottom: 30%; width: 100%; height: 40%;
-            background: #475569; 
-            clip-path: polygon(0% 100%, 15% 40%, 35% 80%, 50% 20%, 75% 60%, 100% 30%, 100% 100%);
-            opacity: 0.7;
-        }
-        .hill-back { position: absolute; bottom: 0; left: -20%; width: 140%; height: 35%; background: #166534; border-radius: 100% 100% 0 0 / 30%; z-index: 1; }
-        .hill-front { position: absolute; bottom: -10%; right: -20%; width: 140%; height: 35%; background: #22c55e; border-radius: 100% 100% 0 0 / 40%; z-index: 2; }
-
-        /* Battle Pads */
+        /* 3D Grass Pads (Matches Reference Image) */
         .battle-pad {
             position: absolute;
-            background: radial-gradient(ellipse at center, #dcfce7 0%, #86efac 60%, rgba(21, 128, 61, 0.4) 100%);
-            border: 3px solid rgba(255, 255, 255, 0.4);
+            /* Radial gradient for the "mound" look */
+            background: radial-gradient(ellipse at center, #86efac 20%, #22c55e 65%, #15803d 100%);
+            border: 4px solid #14532d; /* Dark green outline */
             border-radius: 50%;
-            transform: scaleY(0.3);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
-            z-index: 3;
+            /* Thick 3D shadow effect */
+            box-shadow: 
+                0 12px 0 #064e3b, 
+                0 30px 20px rgba(0,0,0,0.6),
+                inset 0 10px 20px rgba(255,255,255,0.2); 
+            z-index: 5;
         }
-        .pad-p { width: 240px; height: 120px; bottom: 8%; left: 8%; }
-        .pad-e { width: 180px; height: 90px; top: 38%; right: 10%; }
+
+        /* Inner Grass Ring Detail */
+        .battle-pad::after {
+            content: '';
+            position: absolute;
+            top: 6px; left: 6px; right: 6px; bottom: 6px;
+            border: 2px dashed rgba(20, 83, 45, 0.3);
+            border-radius: 50%;
+        }
+
+        /* Player Pad ("Pink Panther Location") - Foreground */
+        .pad-p { 
+            bottom: 6%; 
+            left: -5%; /* Shifted slightly for better camera angle */
+            width: 360px; 
+            height: 140px; 
+            transform: scaleY(0.5) skewX(-10deg); /* 3D perspective skew */
+            z-index: 10;
+        }
+
+        /* Enemy Pad - Background */
+        .pad-e { 
+            top: 32%; 
+            right: 10%; 
+            width: 260px; 
+            height: 100px; 
+            transform: scaleY(0.5) scale(0.9); 
+            filter: brightness(0.9); /* Slightly darker due to distance */
+            z-index: 5;
+        }
+        
+        /* Adjusted Sprite Containers to sit correctly on new pads */
+        #spr-p-con { bottom: 18%; left: 8%; width: 200px; height: 200px; z-index: 20; }
+        #spr-e-con { top: 20%; right: 12%; width: 150px; height: 150px; z-index: 15; }
+
+        /* --- UI & VFX (Kept Same) --- */
+        .info-box { background: rgba(30, 41, 59, 0.95); border: 2px solid #fbbf24; border-radius: 8px; padding: 8px; color: white; box-shadow: 0 4px 6px rgba(0,0,0,0.5); z-index: 30; backdrop-filter: blur(4px); }
+        /* ... Keep your existing Animations/VFX styles below this ... */
+
 
         /* UI */
         .info-box { background: #1e293b; border: 3px solid #fbbf24; border-radius: 12px; padding: 10px; color: white; box-shadow: 6px 6px 0 rgba(0,0,0,0.4); z-index: 30; }
