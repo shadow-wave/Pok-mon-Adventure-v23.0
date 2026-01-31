@@ -1075,54 +1075,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
 
         const getStatusTag = (status) => status ? `<span class="status-badge status-${status}">${status.toUpperCase()}</span>` : '';
 
-                const renderBattle = () => {
-            const p = battle.pParty[battle.pActive]; const e = battle.eParty[battle.eActive];
-            const pPct = (p.hp/p.maxHp)*100; const ePct = (e.hp/e.maxHp)*100;
-            const genBalls = (party) => party.map(m => `<div class="w-2 h-2 rounded-full border border-slate-500 ${m.hp <= 0 ? 'bg-slate-700' : 'bg-green-500'}"></div>`).join('');
-            
-            ui.innerHTML = `
-                <div class="game-frame">
-                    <div id="battle-container" class="battle-view">
-                        <div class="clouds-container"><div class="cloud c1"></div><div class="cloud c2"></div></div>
-                        <div class="landscape"><div class="mountains"></div><div class="hill-back"></div><div class="hill-front"></div></div>
-                        <div class="sun"></div>
-                        <div class="platform battle-pad pad-e"></div><div class="platform battle-pad pad-p"></div>
-                        
-                        <div class="absolute top-6 left-4 info-box w-44">
-                            <div class="text-[8px] font-bold flex justify-between mb-1">
-                                <span>${e.name}</span>
-                                <div class="flex items-center"><span>Lv${e.lvl}</span>${getStatusTag(e.status)}</div>
-                            </div>
-                            <div class="h-3 bg-slate-800 rounded-full border border-white overflow-hidden">
-                                <div id="hp-e" class="h-full bg-green-500 hp-fill transition-all duration-500" style="width:${ePct}%"></div>
-                            </div>
-                            <div class="flex gap-1 mt-1 justify-end">${genBalls(battle.eParty)}</div>
-                        </div>
-                        <div id="spr-e-con" class="absolute top-[18%] right-[12%] w-32 h-32 flex items-center justify-center z-10"><img id="spr-e" src="${getSprite(e.protoId)}" class="w-full h-full object-contain anim-float"></div>
-                        
-                        <div class="absolute bottom-10 right-4 info-box w-48">
-                            <div class="text-[8px] font-bold flex justify-between mb-1">
-                                <span>${p.name}</span>
-                                <div class="flex items-center"><span>Lv${p.lvl}</span>${getStatusTag(p.status)}</div>
-                            </div>
-                            <div class="h-4 bg-slate-800 rounded-full border border-white overflow-hidden">
-                                <div id="hp-p" class="h-full bg-green-500 hp-fill transition-all duration-500" style="width:${pPct}%"></div>
-                            </div>
-                            <div class="text-[8px] text-right mt-1 font-mono font-bold text-white">${p.hp}/${p.maxHp} HP</div>
-                            <div class="flex gap-1 mt-1">${genBalls(battle.pParty)}</div>
-                        </div>
-                        <div id="spr-p-con" class="absolute bottom-[20%] left-[10%] w-40 h-40 flex items-center justify-center z-10"><img id="spr-p" src="${getSprite(p.protoId, true)}" class="w-full h-full object-contain anim-breathe"></div>
-                        
-                        <div id="vfx-layer" class="vfx-container absolute inset-0 pointer-events-none z-[100]"></div>
-                        <img id="pokeball" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" class="absolute bottom-0 left-0 w-10 hidden z-[50]">
-                    </div>
-                    <div class="bg-slate-900 border-t-4 border-slate-700 p-2 flex flex-col gap-2 h-44">
-                        <div class="bg-slate-800 text-white p-2 rounded-lg h-10 flex items-center justify-center text-[9px] text-center border border-slate-600"><span id="log-text">${battle.log}</span></div>
-                        <div id="grid" class="grid grid-cols-2 gap-2 h-full"></div>
-                    </div>
-                </div>`;
-            updateControls();
-        };
+                
 
 
         const updateControls = () => {
@@ -1139,7 +1092,64 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 const moveData = MOVES[m] || MOVES['Tackle'];
                 return `<button onclick="doAction('${m}')" class="type-btn type-${moveData.type.toLowerCase()} py-3 text-[10px] uppercase border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">${m}</button>`;
             }).join('');
+          const renderBattle = () => {
+            const p = battle.pParty[battle.pActive]; const e = battle.eParty[battle.eActive];
+            const pPct = (p.hp/p.maxHp)*100; const ePct = (e.hp/e.maxHp)*100;
+            const genBalls = (party) => party.map(m => `<div class="w-2 h-2 rounded-full border border-slate-500 ${m.hp <= 0 ? 'bg-slate-700' : 'bg-green-500'}"></div>`).join('');
             
+            // --- UPDATED HTML STRUCTURE (V31) ---
+            ui.innerHTML = `
+                <div class="game-frame">
+                    <div id="battle-container" class="battle-view bg-green-800">
+                        
+                        <div class="battle-pad pad-e"></div>
+                        <div class="battle-pad pad-p"></div>
+                        
+                        <div class="absolute top-8 left-4 info-box w-44">
+                            <div class="text-[10px] font-bold flex justify-between mb-1">
+                                <span class="text-yellow-400 drop-shadow-md">${e.name}</span>
+                                <div class="flex items-center"><span>Lv${e.lvl}</span>${getStatusTag(e.status)}</div>
+                            </div>
+                            <div class="h-3 bg-slate-900 rounded-full border border-slate-600 overflow-hidden relative">
+                                <div id="hp-e" class="h-full bg-red-500 hp-fill transition-all duration-500 absolute top-0 left-0" style="width:${ePct}%"></div>
+                                <div class="h-full bg-green-500 hp-fill transition-all duration-500 relative z-10" style="width:${ePct}%"></div>
+                            </div>
+                            <div class="flex gap-1 mt-1 justify-end opacity-80">${genBalls(battle.eParty)}</div>
+                        </div>
+
+                        <div id="spr-e-con" class="absolute flex items-center justify-center">
+                            <img id="spr-e" src="${getSprite(e.protoId)}" class="w-full h-full object-contain anim-float drop-shadow-2xl">
+                        </div>
+                        
+                        <div class="absolute bottom-12 right-4 info-box w-48">
+                            <div class="text-[10px] font-bold flex justify-between mb-1">
+                                <span class="text-yellow-400 drop-shadow-md">${p.name}</span>
+                                <div class="flex items-center"><span>Lv${p.lvl}</span>${getStatusTag(p.status)}</div>
+                            </div>
+                            <div class="h-4 bg-slate-900 rounded-full border border-slate-600 overflow-hidden relative">
+                                <div id="hp-p" class="h-full bg-red-500 hp-fill transition-all duration-500 absolute top-0 left-0" style="width:${pPct}%"></div>
+                                <div class="h-full bg-green-500 hp-fill transition-all duration-500 relative z-10" style="width:${pPct}%"></div>
+                            </div>
+                            <div class="text-[10px] text-right mt-1 font-mono font-bold text-white tracking-widest">${p.hp}/${p.maxHp}</div>
+                            <div class="flex gap-1 mt-1 opacity-80">${genBalls(battle.pParty)}</div>
+                        </div>
+
+                        <div id="spr-p-con" class="absolute flex items-center justify-center">
+                            <img id="spr-p" src="${getSprite(p.protoId, true)}" class="w-full h-full object-contain anim-breathe drop-shadow-2xl">
+                        </div>
+                        
+                        <div id="vfx-layer" class="vfx-container absolute inset-0 pointer-events-none z-[100]"></div>
+                        <img id="pokeball" src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" class="absolute bottom-0 left-0 w-10 hidden z-[50]">
+                    </div>
+                    
+                    <div class="bg-slate-900 border-t-4 border-slate-700 p-2 flex flex-col gap-2 h-44 shadow-2xl relative z-20">
+                        <div class="bg-slate-800 text-white p-2 rounded-lg h-10 flex items-center justify-center text-[9px] text-center border border-slate-600"><span id="log-text">${battle.log}</span></div>
+                        <div id="grid" class="grid grid-cols-2 gap-2 h-full"></div>
+                    </div>
+                </div>`;
+            updateControls();
+        };
+          
             if(battle.mode === 'ai') grid.innerHTML += `<button onclick="startCatch()" class="type-btn type-catch py-3 text-[10px] border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">CATCH x${state.bag.balls}</button>`;
             grid.innerHTML += `<button onclick="manualSwitch()" class="type-btn bg-slate-600 py-3 text-[10px] border-b-4 rounded font-bold hover:brightness-110 active:border-b-0 active:translate-y-1">SWITCH</button>`;
         };
@@ -1357,13 +1367,13 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
             }); 
         };
 
-                const renderMPBattle = (data) => {
+                        const renderMPBattle = (data) => {
             const me = mpRole==='p1'?data.p1:data.p2; const op = mpRole==='p1'?data.p2:data.p1;
             const mMon = me.party[me.activeIdx]; const oMon = op.party[op.activeIdx];
             
             ui.innerHTML = `
                 <div class="game-frame bg-gray-800">
-                    <div id="battle-container" class="battle-view">
+                    <div id="battle-container" class="battle-view bg-green-800">
                         <div class="battle-pad pad-e"></div>
                         <div class="battle-pad pad-p"></div>
                         
@@ -1403,7 +1413,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                     </div>
                 </div>`;
             
-            // ... (Rest of the function remains the same, do not delete the button generation logic below this)
+            // ... (Do NOT delete the button generation logic below this line!)
             document.getElementById('mp-grid').innerHTML = mMon.moves.map(m => {
                 const moveData = MOVES[m] || MOVES['Tackle'];
                 return `<button onclick="sendMPMove('${m}')" class="type-btn type-${moveData.type.toLowerCase()} border-b-4 rounded font-bold text-[10px] hover:brightness-110 h-10">${m}</button>`;
@@ -1415,6 +1425,7 @@ if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
                 executeMoveAnimation(data.p2, data.p1, data.lastAction.move, false); 
             }
         };
+
 
 
         window.sendMPMove = async (moveName) => {
